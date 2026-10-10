@@ -1,40 +1,39 @@
-# ==============================
-# Stage 1: Build the application
-# ==============================
+
+# ==========================================
+# Stage 1: Build the Spring Boot application
+# ==========================================
 FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
 
-# Copy Maven wrapper
+# Copy Maven Wrapper files
 COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
+COPY .mvn/ .mvn/
+COPY pom.xml
 
-# Give execute permission to Maven wrapper
-RUN chmod +x mvnw
+# Run Maven Wrapper through the shell
+# This avoids depending on executable permission for mvnw
+RUN sh mvnw -B dependency:go-offline
 
-# Download dependencies
-RUN ./mvnw dependency:go-offline -B
+# Copy application source code
+COPY src/ src/
 
-# Copy source code
-COPY src src
-
-# Build Spring Boot JAR
-RUN ./mvnw clean package -DskipTests
+# Build the application JAR
+RUN sh mvnw -B clean package -DskipTests
 
 
-# ==============================
-# Stage 2: Run the application
-# ==============================
+# ==========================================
+# Stage 2: Run the Spring Boot application
+# ==========================================
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy JAR from build stage
+# Copy the generated JAR from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Spring Boot application port
+# Application port
 EXPOSE 8082
 
-# Start application
+# Start the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
