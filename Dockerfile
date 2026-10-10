@@ -9,30 +9,29 @@ WORKDIR /app
 # Copy Maven Wrapper files
 COPY mvnw .
 COPY .mvn/ .mvn/
-COPY pom.xml
+COPY pom.xml .
 
-# Run Maven Wrapper through the shell
-# This avoids depending on executable permission for mvnw
+# Download Maven dependencies
 RUN sh mvnw -B dependency:go-offline
 
 # Copy application source code
 COPY src/ src/
 
-# Build the application JAR
+# Build the Spring Boot JAR
 RUN sh mvnw -B clean package -DskipTests
 
 
 # ==========================================
-# Stage 2: Run the Spring Boot application
+# Stage 2: Run the application
 # ==========================================
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy the generated JAR from the build stage
+# Copy the generated JAR
 COPY --from=build /app/target/*.jar app.jar
 
-# Application port
+# Expose the application port
 EXPOSE 8082
 
 # Start the application
