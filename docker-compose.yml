@@ -1,73 +1,48 @@
-services:
 
-  # ==========================================
-  # MySQL Database
-  # ==========================================
+services:
+  # MySQL database
   mysql:
     image: mysql:8.0
     container_name: nupay-mysql
-
     environment:
-      DB_HOST: mysql
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      NUPAY_BASE_URL: http://dummy-nupay:8081
-
-   # ports:
-     # - "3306:3306"
-
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: EmanateServicesAPI
+    ports:
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
       timeout: 5s
       retries: 10
       interval: 5s
-      start_period: 10s
+      start_period: 20s
 
-
-  # ==========================================
-  # Dummy NuPay Service
-  # ==========================================
+  # Dummy NuPay / Target Service
   dummy-nupay:
     build:
       context: ../smfg
-
     container_name: dummy-nupay
-
     ports:
       - "8081:8081"
 
-
-  # ==========================================
-  # Main NuPay Service
-  # ==========================================
+  # Main NuPay API
   nupay-service:
     build:
       context: .
-
     container_name: nupay-service
-
     ports:
       - "8082:8082"
-
     environment:
       DB_HOST: mysql
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       NUPAY_BASE_URL: http://dummy-nupay:8081
-
     depends_on:
       mysql:
         condition: service_healthy
-
       dummy-nupay:
         condition: service_started
 
-
-# ==========================================
-# Persistent MySQL storage
-# ==========================================
 volumes:
   mysql_data:
