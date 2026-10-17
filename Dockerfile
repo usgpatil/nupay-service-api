@@ -13,7 +13,7 @@ COPY pom.xml .
 
 # Copy Java source code
 COPY src/ src/
-
+    
 # Resolve dependencies and build the application
 RUN sh mvnw -B clean package -DskipTests
 
