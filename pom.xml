@@ -63,6 +63,13 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+<!-- In-memory database used only for automated tests -->
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>test</scope>
+</dependency>
+
         <!-- MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>
