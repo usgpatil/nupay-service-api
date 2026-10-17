@@ -6,32 +6,29 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
 
-# Copy Maven Wrapper files
+# Copy Maven Wrapper and project configuration
 COPY mvnw .
 COPY .mvn/ .mvn/
 COPY pom.xml .
 
-# Download Maven dependencies
-RUN sh mvnw -B dependency:go-offline
-
-# Copy application source code
+# Copy Java source code
 COPY src/ src/
 
-# Build the Spring Boot JAR
+# Resolve dependencies and build the application
 RUN sh mvnw -B clean package -DskipTests
 
 
 # ==========================================
-# Stage 2: Run the application
+# Stage 2: Run the Spring Boot application
 # ==========================================
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy the generated JAR
+# Copy the generated Spring Boot JAR
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the application port
+# Application port
 EXPOSE 8082
 
 # Start the application
