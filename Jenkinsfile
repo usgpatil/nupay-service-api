@@ -7,12 +7,18 @@ pipeline {
         timestamps()
     }
 
+    // Deployment stays disabled until you explicitly enable it.
+    parameters {
+        booleanParam(
+            name: 'DEPLOY',
+            defaultValue: false,
+            description: 'Enable to deploy all NuPay services.'
+        )
+    }
+
     environment {
-        // Jenkins credentials: use the IDs configured in Jenkins.
         DB_USERNAME = credentials('nupay-db-username')
         DB_PASSWORD = credentials('nupay-db-password')
-
-        // Assumes your MySQL root password is the same as DB_PASSWORD.
         MYSQL_ROOT_PASSWORD = credentials('nupay-db-password')
     }
 
@@ -25,7 +31,6 @@ pipeline {
 
         stage('Checkout Repositories') {
             steps {
-                // Keep the two repositories side by side.
                 dir('nupay_serviceAPI') {
                     git branch: 'main',
                         url: 'https://github.com/usgpatil/nupay-service-api.git'
@@ -62,15 +67,18 @@ pipeline {
             }
         }
 
-        stage('Validate Docker Compose') {
-            steps {
-                dir('nupay_serviceAPI') {
-                    bat 'docker compose config --quiet'
-                }
-            }
+       stage('Validate Docker Compose') {
+    steps {
+        dir('nupay_serviceAPI') {
+            bat 'docker compose config --quiet'
         }
+    }
+}
 
         stage('Deploy All Services') {
+            when {
+                expression { params.DEPLOY }
+            }
             steps {
                 dir('nupay_serviceAPI') {
                     bat 'docker compose up -d --build'
@@ -82,10 +90,10 @@ pipeline {
 
     post {
         success {
-            echo 'NuPay CI/CD completed successfully!'
+            echo 'NuPay CI/CD pipeline completed successfully!'
         }
         failure {
-            echo 'NuPay CI/CD failed. Check the Console Output.'
+            echo 'NuPay CI/CD pipeline failed. Check Console Output.'
         }
     }
 }
